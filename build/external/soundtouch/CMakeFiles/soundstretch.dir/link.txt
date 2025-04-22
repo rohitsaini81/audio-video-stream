@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/soundstretch.dir/link.d CMakeFiles/soundstretch.dir/source/SoundStretch/main.cpp.o CMakeFiles/soundstretch.dir/source/SoundStretch/RunParameters.cpp.o CMakeFiles/soundstretch.dir/source/SoundStretch/WavFile.cpp.o -o soundstretch  libSoundTouch.a
