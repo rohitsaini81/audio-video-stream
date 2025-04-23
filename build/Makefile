@@ -322,6 +322,30 @@ external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/voice_changer.dir/build.make CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.s
 .PHONY : external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.s
 
+func.o: func.cpp.o
+.PHONY : func.o
+
+# target to build an object file
+func.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/voice_changer.dir/build.make CMakeFiles/voice_changer.dir/func.cpp.o
+.PHONY : func.cpp.o
+
+func.i: func.cpp.i
+.PHONY : func.i
+
+# target to preprocess a source file
+func.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/voice_changer.dir/build.make CMakeFiles/voice_changer.dir/func.cpp.i
+.PHONY : func.cpp.i
+
+func.s: func.cpp.s
+.PHONY : func.s
+
+# target to generate assembly for a file
+func.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/voice_changer.dir/build.make CMakeFiles/voice_changer.dir/func.cpp.s
+.PHONY : func.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -375,6 +399,9 @@ help:
 	@echo "... external/DSPFilters/shared/DSPFilters/source/PoleFilter.o"
 	@echo "... external/DSPFilters/shared/DSPFilters/source/PoleFilter.i"
 	@echo "... external/DSPFilters/shared/DSPFilters/source/PoleFilter.s"
+	@echo "... func.o"
+	@echo "... func.i"
+	@echo "... func.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

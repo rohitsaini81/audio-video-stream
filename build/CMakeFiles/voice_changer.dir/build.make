@@ -86,10 +86,24 @@ CMakeFiles/voice_changer.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/voice_changer.dir/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rohit/Desktop/work/GameDev/voice-changer/main.cpp -o CMakeFiles/voice_changer.dir/main.cpp.s
 
+CMakeFiles/voice_changer.dir/func.cpp.o: CMakeFiles/voice_changer.dir/flags.make
+CMakeFiles/voice_changer.dir/func.cpp.o: /home/rohit/Desktop/work/GameDev/voice-changer/func.cpp
+CMakeFiles/voice_changer.dir/func.cpp.o: CMakeFiles/voice_changer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/voice_changer.dir/func.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/voice_changer.dir/func.cpp.o -MF CMakeFiles/voice_changer.dir/func.cpp.o.d -o CMakeFiles/voice_changer.dir/func.cpp.o -c /home/rohit/Desktop/work/GameDev/voice-changer/func.cpp
+
+CMakeFiles/voice_changer.dir/func.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/voice_changer.dir/func.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rohit/Desktop/work/GameDev/voice-changer/func.cpp > CMakeFiles/voice_changer.dir/func.cpp.i
+
+CMakeFiles/voice_changer.dir/func.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/voice_changer.dir/func.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rohit/Desktop/work/GameDev/voice-changer/func.cpp -o CMakeFiles/voice_changer.dir/func.cpp.s
+
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o: CMakeFiles/voice_changer.dir/flags.make
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o: /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o: CMakeFiles/voice_changer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o -MF CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o.d -o CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o -c /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp
 
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.i: cmake_force
@@ -103,7 +117,7 @@ CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o: CMakeFiles/voice_changer.dir/flags.make
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o: /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o: CMakeFiles/voice_changer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o -MF CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o.d -o CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o -c /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp
 
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.i: cmake_force
@@ -117,7 +131,7 @@ CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butter
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o: CMakeFiles/voice_changer.dir/flags.make
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o: /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o: CMakeFiles/voice_changer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o -MF CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o.d -o CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o -c /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp
 
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.i: cmake_force
@@ -131,7 +145,7 @@ CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascad
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o: CMakeFiles/voice_changer.dir/flags.make
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o: /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o: CMakeFiles/voice_changer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o -MF CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o.d -o CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o -c /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp
 
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.i: cmake_force
@@ -145,6 +159,7 @@ CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFi
 # Object files for target voice_changer
 voice_changer_OBJECTS = \
 "CMakeFiles/voice_changer.dir/main.cpp.o" \
+"CMakeFiles/voice_changer.dir/func.cpp.o" \
 "CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o" \
 "CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o" \
 "CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o" \
@@ -154,6 +169,7 @@ voice_changer_OBJECTS = \
 voice_changer_EXTERNAL_OBJECTS =
 
 voice_changer: CMakeFiles/voice_changer.dir/main.cpp.o
+voice_changer: CMakeFiles/voice_changer.dir/func.cpp.o
 voice_changer: CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o
 voice_changer: CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o
 voice_changer: CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o
@@ -166,7 +182,7 @@ voice_changer: /usr/lib/libjack.so
 voice_changer: /usr/lib/libasound.so
 voice_changer: /usr/lib/libpulse.so
 voice_changer: CMakeFiles/voice_changer.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable voice_changer"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/rohit/Desktop/work/GameDev/voice-changer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable voice_changer"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/voice_changer.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

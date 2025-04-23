@@ -3,6 +3,7 @@ voice_changer: \
   /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/../../../../lib/crti.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/crtbeginS.o \
   CMakeFiles/voice_changer.dir/main.cpp.o \
+  CMakeFiles/voice_changer.dir/func.cpp.o \
   CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o \
   CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Butterworth.cpp.o \
   CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o \
@@ -74,6 +75,8 @@ voice_changer: \
 /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/crtbeginS.o:
 
 CMakeFiles/voice_changer.dir/main.cpp.o:
+
+CMakeFiles/voice_changer.dir/func.cpp.o:
 
 CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Biquad.cpp.o:
 

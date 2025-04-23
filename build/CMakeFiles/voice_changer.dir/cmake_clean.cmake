@@ -8,6 +8,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/Cascade.cpp.o.d"
   "CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o"
   "CMakeFiles/voice_changer.dir/external/DSPFilters/shared/DSPFilters/source/PoleFilter.cpp.o.d"
+  "CMakeFiles/voice_changer.dir/func.cpp.o"
+  "CMakeFiles/voice_changer.dir/func.cpp.o.d"
   "CMakeFiles/voice_changer.dir/main.cpp.o"
   "CMakeFiles/voice_changer.dir/main.cpp.o.d"
   "voice_changer"

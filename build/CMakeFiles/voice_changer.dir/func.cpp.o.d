@@ -1,6 +1,8 @@
-CMakeFiles/voice_changer.dir/main.cpp.o: \
- /home/rohit/Desktop/work/GameDev/voice-changer/main.cpp \
+CMakeFiles/voice_changer.dir/func.cpp.o: \
+ /home/rohit/Desktop/work/GameDev/voice-changer/func.cpp \
  /usr/include/stdc-predef.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/func.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/portaudio/include/portaudio.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/soundtouch/include/SoundTouch.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/soundtouch/include/FIFOSamplePipe.h \
  /usr/include/assert.h /usr/include/features.h \
@@ -112,8 +114,32 @@ CMakeFiles/voice_changer.dir/main.cpp.o: \
  /usr/include/c++/14.2.1/cstddef \
  /usr/include/c++/14.2.1/bits/uses_allocator.h \
  /usr/include/c++/14.2.1/bits/uses_allocator_args.h \
- /usr/include/c++/14.2.1/tuple /usr/include/c++/14.2.1/iostream \
- /usr/include/c++/14.2.1/ostream /usr/include/c++/14.2.1/ios \
+ /usr/include/c++/14.2.1/tuple \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Dsp.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Common.h \
+ /usr/include/c++/14.2.1/cassert /usr/include/c++/14.2.1/cfloat \
+ /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/include/float.h \
+ /usr/include/c++/14.2.1/cmath /usr/include/math.h \
+ /usr/include/bits/math-vector.h /usr/include/bits/libm-simd-decl-stubs.h \
+ /usr/include/bits/flt-eval-method.h /usr/include/bits/fp-logb.h \
+ /usr/include/bits/fp-fast.h /usr/include/bits/mathcalls-macros.h \
+ /usr/include/bits/mathcalls-helper-functions.h \
+ /usr/include/bits/mathcalls.h /usr/include/bits/mathcalls-narrow.h \
+ /usr/include/bits/iscanonical.h /usr/include/c++/14.2.1/bits/specfun.h \
+ /usr/include/c++/14.2.1/limits /usr/include/c++/14.2.1/tr1/gamma.tcc \
+ /usr/include/c++/14.2.1/tr1/special_function_util.h \
+ /usr/include/c++/14.2.1/tr1/bessel_function.tcc \
+ /usr/include/c++/14.2.1/tr1/beta_function.tcc \
+ /usr/include/c++/14.2.1/tr1/ell_integral.tcc \
+ /usr/include/c++/14.2.1/tr1/exp_integral.tcc \
+ /usr/include/c++/14.2.1/tr1/hypergeometric.tcc \
+ /usr/include/c++/14.2.1/tr1/legendre_function.tcc \
+ /usr/include/c++/14.2.1/tr1/modified_bessel_func.tcc \
+ /usr/include/c++/14.2.1/tr1/poly_hermite.tcc \
+ /usr/include/c++/14.2.1/tr1/poly_laguerre.tcc \
+ /usr/include/c++/14.2.1/tr1/riemann_zeta.tcc \
+ /usr/include/c++/14.2.1/complex /usr/include/c++/14.2.1/sstream \
+ /usr/include/c++/14.2.1/istream /usr/include/c++/14.2.1/ios \
  /usr/include/c++/14.2.1/bits/ios_base.h \
  /usr/include/c++/14.2.1/ext/atomicity.h \
  /usr/include/c++/14.2.1/x86_64-pc-linux-gnu/bits/gthr.h \
@@ -148,46 +174,8 @@ CMakeFiles/voice_changer.dir/main.cpp.o: \
  /usr/include/c++/14.2.1/x86_64-pc-linux-gnu/bits/ctype_inline.h \
  /usr/include/c++/14.2.1/bits/locale_facets.tcc \
  /usr/include/c++/14.2.1/bits/basic_ios.tcc \
- /usr/include/c++/14.2.1/bits/ostream.tcc /usr/include/c++/14.2.1/istream \
+ /usr/include/c++/14.2.1/ostream /usr/include/c++/14.2.1/bits/ostream.tcc \
  /usr/include/c++/14.2.1/bits/istream.tcc \
- /home/rohit/Desktop/work/GameDev/voice-changer/external/portaudio/include/portaudio.h \
- /usr/include/c++/14.2.1/thread /usr/include/c++/14.2.1/bits/std_thread.h \
- /usr/include/c++/14.2.1/bits/unique_ptr.h \
- /usr/include/c++/14.2.1/bits/this_thread_sleep.h \
- /usr/include/c++/14.2.1/bits/chrono.h /usr/include/c++/14.2.1/ratio \
- /usr/include/c++/14.2.1/cstdint \
- /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/include/stdint.h \
- /usr/include/stdint.h /usr/include/bits/stdint-uintn.h \
- /usr/include/bits/stdint-least.h /usr/include/c++/14.2.1/limits \
- /usr/include/c++/14.2.1/ctime \
- /usr/include/c++/14.2.1/bits/parse_numbers.h \
- /usr/include/c++/14.2.1/atomic \
- /usr/include/c++/14.2.1/bits/atomic_base.h \
- /usr/include/c++/14.2.1/bits/atomic_lockfree_defines.h \
- /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Biquad.h \
- /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Common.h \
- /usr/include/c++/14.2.1/cassert /usr/include/c++/14.2.1/cfloat \
- /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/include/float.h \
- /usr/include/c++/14.2.1/cmath /usr/include/math.h \
- /usr/include/bits/math-vector.h /usr/include/bits/libm-simd-decl-stubs.h \
- /usr/include/bits/flt-eval-method.h /usr/include/bits/fp-logb.h \
- /usr/include/bits/fp-fast.h /usr/include/bits/mathcalls-macros.h \
- /usr/include/bits/mathcalls-helper-functions.h \
- /usr/include/bits/mathcalls.h /usr/include/bits/mathcalls-narrow.h \
- /usr/include/bits/iscanonical.h /usr/include/c++/14.2.1/bits/specfun.h \
- /usr/include/c++/14.2.1/tr1/gamma.tcc \
- /usr/include/c++/14.2.1/tr1/special_function_util.h \
- /usr/include/c++/14.2.1/tr1/bessel_function.tcc \
- /usr/include/c++/14.2.1/tr1/beta_function.tcc \
- /usr/include/c++/14.2.1/tr1/ell_integral.tcc \
- /usr/include/c++/14.2.1/tr1/exp_integral.tcc \
- /usr/include/c++/14.2.1/tr1/hypergeometric.tcc \
- /usr/include/c++/14.2.1/tr1/legendre_function.tcc \
- /usr/include/c++/14.2.1/tr1/modified_bessel_func.tcc \
- /usr/include/c++/14.2.1/tr1/poly_hermite.tcc \
- /usr/include/c++/14.2.1/tr1/poly_laguerre.tcc \
- /usr/include/c++/14.2.1/tr1/riemann_zeta.tcc \
- /usr/include/c++/14.2.1/complex /usr/include/c++/14.2.1/sstream \
  /usr/include/c++/14.2.1/bits/sstream.tcc /usr/include/c++/14.2.1/cstring \
  /usr/include/string.h /usr/include/strings.h \
  /usr/include/c++/14.2.1/vector \
@@ -203,14 +191,24 @@ CMakeFiles/voice_changer.dir/main.cpp.o: \
  /usr/include/c++/14.2.1/bits/stl_tempbuf.h \
  /usr/include/c++/14.2.1/pstl/glue_algorithm_defs.h \
  /usr/include/c++/14.2.1/pstl/execution_defs.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Biquad.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/MathSupplement.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Types.h \
- /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Butterworth.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Cascade.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Filter.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Params.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/State.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Layout.h \
- /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Design.h \
  /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/PoleFilter.h \
- /home/rohit/Desktop/work/GameDev/voice-changer/./func.h
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/SmoothedFilter.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Utilities.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Bessel.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Design.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/RootFinder.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Butterworth.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/ChebyshevI.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/ChebyshevII.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Custom.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Elliptic.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/Legendre.h \
+ /home/rohit/Desktop/work/GameDev/voice-changer/external/DSPFilters/shared/DSPFilters/include/DspFilters/RBJ.h

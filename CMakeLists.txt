@@ -17,7 +17,7 @@ include_directories(
 )
 
 # Create the executable first
-add_executable(voice_changer main.cpp)
+add_executable(voice_changer main.cpp func.cpp)
 
 # Add the necessary source files for the DSP library to the executable target
 
