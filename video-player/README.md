@@ -1,12 +1,16 @@
 # Video Player (FFmpeg)
 
-This is a simple C++ video player launcher that uses FFmpeg's `ffplay`.
-Pass a video path to the compiled binary and it will play the video.
+This is a C++ video player built with FFmpeg decoding + SDL2 rendering.
+Pass a video path to the compiled binary and it will play the video with:
+- a seek bar (click to jump)
+- backward button (seek -10s)
+- forward button (seek +10s)
 
 ## Build
 
 ```bash
-g++ -std=c++17 player.cpp -o video_player
+g++ -std=c++17 player.cpp -o video_player \
+  $(pkg-config --cflags --libs sdl2 libavformat libavcodec libswscale libavutil)
 ```
 
 ## Run
@@ -17,5 +21,7 @@ g++ -std=c++17 player.cpp -o video_player
 
 ## Notes
 
-- Requires `ffplay` installed and available in `PATH`.
-- Playback exits automatically when the video ends.
+- Keyboard shortcuts:
+  - `Left Arrow`: seek backward 10 seconds
+  - `Right Arrow`: seek forward 10 seconds
+  - `Space`: pause/resume
