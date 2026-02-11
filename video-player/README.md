@@ -3,8 +3,10 @@
 This is a C++ video player built with FFmpeg decoding + SDL2 rendering.
 Pass a video path to the compiled binary and it will play the video with:
 - a seek bar (click to jump)
+- seek bar drag support for precise scrubbing
 - backward button (seek -10s)
 - forward button (seek +10s)
+- resizable window with aspect-ratio-preserving video scaling
 
 ## Build
 

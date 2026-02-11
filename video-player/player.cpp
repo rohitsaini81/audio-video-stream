@@ -8,6 +8,7 @@ extern "C" {
 }
 
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <string>
 
@@ -16,6 +17,7 @@ constexpr int kControlHeight = 90;
 constexpr int kButtonWidth = 80;
 constexpr int kButtonHeight = 42;
 constexpr int kSeekStepSeconds = 10;
+constexpr int kSeekToleranceFrames = 300;
 
 struct PlayerContext {
   AVFormatContext* format_ctx = nullptr;
@@ -32,6 +34,26 @@ struct PlayerContext {
   double current_seconds = 0.0;
   bool eof = false;
 };
+
+struct UiLayout {
+  SDL_Rect video_dst;
+  SDL_Rect controls;
+  SDL_Rect back_btn;
+  SDL_Rect fwd_btn;
+  SDL_Rect seek_bar;
+};
+
+double frame_seconds(const PlayerContext& ctx) {
+  int64_t ts = ctx.frame->best_effort_timestamp;
+  if (ts == AV_NOPTS_VALUE) {
+    ts = ctx.frame->pts;
+  }
+  if (ts == AV_NOPTS_VALUE) {
+    return ctx.current_seconds;
+  }
+  AVRational tb = ctx.format_ctx->streams[ctx.video_stream_index]->time_base;
+  return ts * av_q2d(tb);
+}
 
 bool init_ffmpeg(PlayerContext& ctx, const std::string& path) {
   if (avformat_open_input(&ctx.format_ctx, path.c_str(), nullptr, nullptr) < 0) {
@@ -79,7 +101,10 @@ bool init_ffmpeg(PlayerContext& ctx, const std::string& path) {
   if (fr.num > 0 && fr.den > 0) {
     ctx.fps = av_q2d(fr);
   }
-  if (ctx.format_ctx->duration > 0) {
+
+  if (stream->duration > 0) {
+    ctx.duration_seconds = stream->duration * av_q2d(stream->time_base);
+  } else if (ctx.format_ctx->duration > 0) {
     ctx.duration_seconds = static_cast<double>(ctx.format_ctx->duration) / AV_TIME_BASE;
   }
 
@@ -98,11 +123,13 @@ bool init_ffmpeg(PlayerContext& ctx, const std::string& path) {
     std::cerr << "Failed to compute RGB buffer size.\n";
     return false;
   }
+
   ctx.rgb_buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(rgb_size)));
   if (!ctx.rgb_buffer) {
     std::cerr << "Failed to allocate RGB buffer.\n";
     return false;
   }
+
   if (av_image_fill_arrays(ctx.rgb_frame->data, ctx.rgb_frame->linesize, ctx.rgb_buffer,
                            AV_PIX_FMT_RGB24, w, h, 1) < 0) {
     std::cerr << "Failed to set RGB frame data.\n";
@@ -115,6 +142,7 @@ bool init_ffmpeg(PlayerContext& ctx, const std::string& path) {
     std::cerr << "Failed to init scaler.\n";
     return false;
   }
+
   return true;
 }
 
@@ -135,6 +163,7 @@ bool decode_one_frame(PlayerContext& ctx) {
       ctx.eof = true;
       return false;
     }
+
     if (ctx.packet->stream_index != ctx.video_stream_index) {
       av_packet_unref(ctx.packet);
       continue;
@@ -157,19 +186,16 @@ bool decode_one_frame(PlayerContext& ctx) {
     sws_scale(ctx.sws_ctx, ctx.frame->data, ctx.frame->linesize, 0, ctx.codec_ctx->height,
               ctx.rgb_frame->data, ctx.rgb_frame->linesize);
 
-    int64_t ts = ctx.frame->best_effort_timestamp;
-    if (ts != AV_NOPTS_VALUE) {
-      AVRational tb = ctx.format_ctx->streams[ctx.video_stream_index]->time_base;
-      ctx.current_seconds = ts * av_q2d(tb);
-      if (ctx.duration_seconds > 0.0) {
-        ctx.current_seconds = std::clamp(ctx.current_seconds, 0.0, ctx.duration_seconds);
-      }
+    ctx.current_seconds = frame_seconds(ctx);
+    if (ctx.duration_seconds > 0.0) {
+      ctx.current_seconds = std::clamp(ctx.current_seconds, 0.0, ctx.duration_seconds);
     }
+
     return true;
   }
 }
 
-void seek_to(PlayerContext& ctx, double target_seconds) {
+bool seek_to(PlayerContext& ctx, double target_seconds) {
   if (ctx.duration_seconds > 0.0) {
     target_seconds = std::clamp(target_seconds, 0.0, ctx.duration_seconds);
   } else {
@@ -177,12 +203,59 @@ void seek_to(PlayerContext& ctx, double target_seconds) {
   }
 
   AVStream* stream = ctx.format_ctx->streams[ctx.video_stream_index];
-  int64_t seek_ts = static_cast<int64_t>(target_seconds / av_q2d(stream->time_base));
-  if (av_seek_frame(ctx.format_ctx, ctx.video_stream_index, seek_ts, AVSEEK_FLAG_BACKWARD) >= 0) {
-    avcodec_flush_buffers(ctx.codec_ctx);
-    ctx.current_seconds = target_seconds;
-    ctx.eof = false;
+  int64_t target_ts = static_cast<int64_t>(target_seconds / av_q2d(stream->time_base));
+
+  int seek_res = avformat_seek_file(ctx.format_ctx, ctx.video_stream_index, INT64_MIN, target_ts,
+                                    INT64_MAX, AVSEEK_FLAG_BACKWARD);
+  if (seek_res < 0) {
+    seek_res = av_seek_frame(ctx.format_ctx, ctx.video_stream_index, target_ts, AVSEEK_FLAG_BACKWARD);
+    if (seek_res < 0) {
+      return false;
+    }
   }
+
+  avcodec_flush_buffers(ctx.codec_ctx);
+  ctx.eof = false;
+
+  for (int i = 0; i < kSeekToleranceFrames; ++i) {
+    if (!decode_one_frame(ctx)) {
+      return true;
+    }
+    if (ctx.current_seconds >= target_seconds || ctx.duration_seconds <= 0.0) {
+      return true;
+    }
+  }
+
+  return true;
+}
+
+UiLayout compute_layout(int win_w, int win_h, int src_w, int src_h) {
+  UiLayout layout{};
+  int control_h = std::min(kControlHeight, std::max(70, win_h / 5));
+  layout.controls = {0, win_h - control_h, win_w, control_h};
+
+  int video_area_h = std::max(1, win_h - control_h);
+  double scale_x = static_cast<double>(win_w) / static_cast<double>(src_w);
+  double scale_y = static_cast<double>(video_area_h) / static_cast<double>(src_h);
+  double scale = std::max(0.01, std::min(scale_x, scale_y));
+
+  int draw_w = std::max(1, static_cast<int>(src_w * scale));
+  int draw_h = std::max(1, static_cast<int>(src_h * scale));
+  int draw_x = (win_w - draw_w) / 2;
+  int draw_y = (video_area_h - draw_h) / 2;
+  layout.video_dst = {draw_x, draw_y, draw_w, draw_h};
+
+  int pad = 20;
+  int btn_y = layout.controls.y + (control_h - kButtonHeight) / 2;
+  layout.back_btn = {pad, btn_y, kButtonWidth, kButtonHeight};
+  layout.fwd_btn = {pad + kButtonWidth + 16, btn_y, kButtonWidth, kButtonHeight};
+
+  int seek_x = layout.fwd_btn.x + layout.fwd_btn.w + 24;
+  int seek_y = layout.controls.y + control_h / 2 - 6;
+  int seek_w = std::max(80, win_w - seek_x - pad);
+  layout.seek_bar = {seek_x, seek_y, seek_w, 12};
+
+  return layout;
 }
 
 void draw_button(SDL_Renderer* renderer, const SDL_Rect& rect, bool forward) {
@@ -195,6 +268,7 @@ void draw_button(SDL_Renderer* renderer, const SDL_Rect& rect, bool forward) {
   int cy = rect.y + rect.h / 2;
   int s = 10;
   SDL_SetRenderDrawColor(renderer, 230, 230, 230, 255);
+
   if (forward) {
     SDL_RenderDrawLine(renderer, cx - s, cy - s, cx + s, cy);
     SDL_RenderDrawLine(renderer, cx + s, cy, cx - s, cy + s);
@@ -204,36 +278,48 @@ void draw_button(SDL_Renderer* renderer, const SDL_Rect& rect, bool forward) {
   }
 }
 
-void render_ui(SDL_Renderer* renderer, int video_w, int video_h, double progress) {
-  SDL_Rect controls = {0, video_h, video_w, kControlHeight};
+void render_ui(SDL_Renderer* renderer, const UiLayout& layout, double progress) {
   SDL_SetRenderDrawColor(renderer, 20, 24, 28, 255);
-  SDL_RenderFillRect(renderer, &controls);
+  SDL_RenderFillRect(renderer, &layout.controls);
 
-  SDL_Rect back_btn = {20, video_h + 20, kButtonWidth, kButtonHeight};
-  SDL_Rect fwd_btn = {120, video_h + 20, kButtonWidth, kButtonHeight};
-  draw_button(renderer, back_btn, false);
-  draw_button(renderer, fwd_btn, true);
+  draw_button(renderer, layout.back_btn, false);
+  draw_button(renderer, layout.fwd_btn, true);
 
-  int bar_x = 230;
-  int bar_y = video_h + 35;
-  int bar_w = std::max(60, video_w - bar_x - 30);
-  int bar_h = 12;
-
-  SDL_Rect bar_bg = {bar_x, bar_y, bar_w, bar_h};
   SDL_SetRenderDrawColor(renderer, 70, 70, 70, 255);
-  SDL_RenderFillRect(renderer, &bar_bg);
+  SDL_RenderFillRect(renderer, &layout.seek_bar);
 
-  int fill_w = static_cast<int>(bar_w * std::clamp(progress, 0.0, 1.0));
-  SDL_Rect bar_fill = {bar_x, bar_y, fill_w, bar_h};
+  int fill_w = static_cast<int>(layout.seek_bar.w * std::clamp(progress, 0.0, 1.0));
+  SDL_Rect bar_fill = {layout.seek_bar.x, layout.seek_bar.y, fill_w, layout.seek_bar.h};
   SDL_SetRenderDrawColor(renderer, 52, 152, 219, 255);
   SDL_RenderFillRect(renderer, &bar_fill);
 
   SDL_SetRenderDrawColor(renderer, 220, 220, 220, 255);
-  SDL_RenderDrawRect(renderer, &bar_bg);
+  SDL_RenderDrawRect(renderer, &layout.seek_bar);
 }
 
 bool point_in_rect(int x, int y, const SDL_Rect& rect) {
   return x >= rect.x && x < rect.x + rect.w && y >= rect.y && y < rect.y + rect.h;
+}
+
+void seek_from_position(PlayerContext& ctx, const SDL_Rect& seek_bar, int mouse_x) {
+  if (ctx.duration_seconds <= 0.0) {
+    return;
+  }
+  double ratio = static_cast<double>(mouse_x - seek_bar.x) / static_cast<double>(std::max(1, seek_bar.w));
+  ratio = std::clamp(ratio, 0.0, 1.0);
+  seek_to(ctx, ratio * ctx.duration_seconds);
+}
+
+void compute_initial_window_size(int src_w, int src_h, int* out_w, int* out_h) {
+  constexpr int kMaxInitialW = 960;
+  constexpr int kMaxInitialH = 540;
+  double scale_x = static_cast<double>(kMaxInitialW) / static_cast<double>(src_w);
+  double scale_y = static_cast<double>(kMaxInitialH) / static_cast<double>(src_h);
+  double scale = std::min(1.0, std::min(scale_x, scale_y));
+  int w = std::max(480, static_cast<int>(src_w * scale));
+  int h = std::max(270, static_cast<int>(src_h * scale));
+  *out_w = w;
+  *out_h = h + kControlHeight;
 }
 }  // namespace
 
@@ -256,17 +342,22 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  int video_w = ctx.codec_ctx->width;
-  int video_h = ctx.codec_ctx->height;
-  SDL_Window* window = SDL_CreateWindow("FFmpeg Video Player", SDL_WINDOWPOS_CENTERED,
-                                        SDL_WINDOWPOS_CENTERED, video_w, video_h + kControlHeight,
-                                        SDL_WINDOW_SHOWN);
+  int src_w = ctx.codec_ctx->width;
+  int src_h = ctx.codec_ctx->height;
+  int win_w = 0;
+  int win_h = 0;
+  compute_initial_window_size(src_w, src_h, &win_w, &win_h);
+
+  SDL_Window* window =
+      SDL_CreateWindow("FFmpeg Video Player", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, win_w,
+                       win_h, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
   if (!window) {
     std::cerr << "Failed to create window: " << SDL_GetError() << "\n";
     SDL_Quit();
     free_ffmpeg(ctx);
     return 1;
   }
+  SDL_SetWindowMinimumSize(window, 480, 280);
 
   SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   if (!renderer) {
@@ -278,7 +369,7 @@ int main(int argc, char* argv[]) {
   }
 
   SDL_Texture* texture =
-      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, video_w, video_h);
+      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, src_w, src_h);
   if (!texture) {
     std::cerr << "Failed to create texture: " << SDL_GetError() << "\n";
     SDL_DestroyRenderer(renderer);
@@ -290,9 +381,16 @@ int main(int argc, char* argv[]) {
 
   bool running = true;
   bool paused = false;
+  bool dragging_seek = false;
   Uint32 frame_delay_ms = static_cast<Uint32>(1000.0 / std::max(1.0, ctx.fps));
 
+  decode_one_frame(ctx);
+  SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
+
   while (running) {
+    SDL_GetWindowSize(window, &win_w, &win_h);
+    UiLayout layout = compute_layout(win_w, win_h, src_w, src_h);
+
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_QUIT) {
@@ -302,20 +400,20 @@ int main(int argc, char* argv[]) {
         if (event.key.keysym.sym == SDLK_LEFT) seek_to(ctx, ctx.current_seconds - kSeekStepSeconds);
         if (event.key.keysym.sym == SDLK_RIGHT) seek_to(ctx, ctx.current_seconds + kSeekStepSeconds);
       } else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-        SDL_Rect back_btn = {20, video_h + 20, kButtonWidth, kButtonHeight};
-        SDL_Rect fwd_btn = {120, video_h + 20, kButtonWidth, kButtonHeight};
-        SDL_Rect seek_bar = {230, video_h + 35, std::max(60, video_w - 230 - 30), 12};
         int mx = event.button.x;
         int my = event.button.y;
-        if (point_in_rect(mx, my, back_btn)) {
+        if (point_in_rect(mx, my, layout.back_btn)) {
           seek_to(ctx, ctx.current_seconds - kSeekStepSeconds);
-        } else if (point_in_rect(mx, my, fwd_btn)) {
+        } else if (point_in_rect(mx, my, layout.fwd_btn)) {
           seek_to(ctx, ctx.current_seconds + kSeekStepSeconds);
-        } else if (point_in_rect(mx, my, seek_bar) && ctx.duration_seconds > 0.0) {
-          double ratio =
-              static_cast<double>(mx - seek_bar.x) / static_cast<double>(std::max(1, seek_bar.w));
-          seek_to(ctx, ratio * ctx.duration_seconds);
+        } else if (point_in_rect(mx, my, layout.seek_bar)) {
+          dragging_seek = true;
+          seek_from_position(ctx, layout.seek_bar, mx);
         }
+      } else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+        dragging_seek = false;
+      } else if (event.type == SDL_MOUSEMOTION && dragging_seek) {
+        seek_from_position(ctx, layout.seek_bar, event.motion.x);
       }
     }
 
@@ -327,10 +425,9 @@ int main(int argc, char* argv[]) {
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    SDL_Rect dst = {0, 0, video_w, video_h};
-    SDL_RenderCopy(renderer, texture, nullptr, &dst);
+    SDL_RenderCopy(renderer, texture, nullptr, &layout.video_dst);
     double progress = ctx.duration_seconds > 0.0 ? (ctx.current_seconds / ctx.duration_seconds) : 0.0;
-    render_ui(renderer, video_w, video_h, progress);
+    render_ui(renderer, layout, progress);
     SDL_RenderPresent(renderer);
 
     SDL_Delay(frame_delay_ms);
