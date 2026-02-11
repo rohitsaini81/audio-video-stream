@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include "../media-stream/chat_client.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -9,7 +10,9 @@ extern "C" {
 
 #include <algorithm>
 #include <cstdint>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 namespace {
@@ -18,6 +21,7 @@ constexpr int kButtonWidth = 80;
 constexpr int kButtonHeight = 42;
 constexpr int kSeekStepSeconds = 10;
 constexpr int kSeekToleranceFrames = 300;
+constexpr Uint32 kStatusSendIntervalMs = 1000;
 
 struct PlayerContext {
   AVFormatContext* format_ctx = nullptr;
@@ -321,6 +325,41 @@ void compute_initial_window_size(int src_w, int src_h, int* out_w, int* out_h) {
   *out_w = w;
   *out_h = h + kControlHeight;
 }
+
+std::string format_seconds(double total_seconds) {
+  int seconds = std::max(0, static_cast<int>(total_seconds));
+  int h = seconds / 3600;
+  int m = (seconds % 3600) / 60;
+  int s = seconds % 60;
+
+  std::ostringstream out;
+  if (h > 0) {
+    out << h << ":" << std::setw(2) << std::setfill('0') << m << ":" << std::setw(2)
+        << std::setfill('0') << s;
+  } else {
+    out << m << ":" << std::setw(2) << std::setfill('0') << s;
+  }
+  return out.str();
+}
+
+std::string build_status_payload(const std::string& video_path, const PlayerContext& ctx, bool paused,
+                                 int win_w, int win_h) {
+  double progress = 0.0;
+  if (ctx.duration_seconds > 0.0) {
+    progress = std::clamp((ctx.current_seconds / ctx.duration_seconds) * 100.0, 0.0, 100.0);
+  }
+  double remaining = std::max(0.0, ctx.duration_seconds - ctx.current_seconds);
+
+  std::ostringstream out;
+  out << "[VIDEO_STATUS]"
+      << " file=" << video_path << " elapsed=" << format_seconds(ctx.current_seconds)
+      << " remaining=" << format_seconds(remaining)
+      << " total=" << format_seconds(std::max(0.0, ctx.duration_seconds)) << " progress=" << std::fixed
+      << std::setprecision(2) << progress << "%"
+      << " fps=" << std::setprecision(2) << ctx.fps << " paused=" << (paused ? "yes" : "no")
+      << " eof=" << (ctx.eof ? "yes" : "no") << " window=" << win_w << "x" << win_h;
+  return out.str();
+}
 }  // namespace
 
 int main(int argc, char* argv[]) {
@@ -382,7 +421,14 @@ int main(int argc, char* argv[]) {
   bool running = true;
   bool paused = false;
   bool dragging_seek = false;
+  bool send_status_now = true;
+  Uint32 last_status_sent_ms = 0;
   Uint32 frame_delay_ms = static_cast<Uint32>(1000.0 / std::max(1.0, ctx.fps));
+  ChatClient status_client;
+  bool status_connected = status_client.Connect("127.0.0.1", 54000);
+  if (!status_connected) {
+    std::cerr << "Warning: failed to connect status stream to 127.0.0.1:54000\n";
+  }
 
   decode_one_frame(ctx);
   SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
@@ -396,24 +442,37 @@ int main(int argc, char* argv[]) {
       if (event.type == SDL_QUIT) {
         running = false;
       } else if (event.type == SDL_KEYDOWN) {
-        if (event.key.keysym.sym == SDLK_SPACE) paused = !paused;
-        if (event.key.keysym.sym == SDLK_LEFT) seek_to(ctx, ctx.current_seconds - kSeekStepSeconds);
-        if (event.key.keysym.sym == SDLK_RIGHT) seek_to(ctx, ctx.current_seconds + kSeekStepSeconds);
+        if (event.key.keysym.sym == SDLK_SPACE) {
+          paused = !paused;
+          send_status_now = true;
+        }
+        if (event.key.keysym.sym == SDLK_LEFT) {
+          seek_to(ctx, ctx.current_seconds - kSeekStepSeconds);
+          send_status_now = true;
+        }
+        if (event.key.keysym.sym == SDLK_RIGHT) {
+          seek_to(ctx, ctx.current_seconds + kSeekStepSeconds);
+          send_status_now = true;
+        }
       } else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
         int mx = event.button.x;
         int my = event.button.y;
         if (point_in_rect(mx, my, layout.back_btn)) {
           seek_to(ctx, ctx.current_seconds - kSeekStepSeconds);
+          send_status_now = true;
         } else if (point_in_rect(mx, my, layout.fwd_btn)) {
           seek_to(ctx, ctx.current_seconds + kSeekStepSeconds);
+          send_status_now = true;
         } else if (point_in_rect(mx, my, layout.seek_bar)) {
           dragging_seek = true;
           seek_from_position(ctx, layout.seek_bar, mx);
+          send_status_now = true;
         }
       } else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
         dragging_seek = false;
       } else if (event.type == SDL_MOUSEMOTION && dragging_seek) {
         seek_from_position(ctx, layout.seek_bar, event.motion.x);
+        send_status_now = true;
       }
     }
 
@@ -430,8 +489,25 @@ int main(int argc, char* argv[]) {
     render_ui(renderer, layout, progress);
     SDL_RenderPresent(renderer);
 
+    Uint32 now_ms = SDL_GetTicks();
+    if (status_connected &&
+        (send_status_now || now_ms - last_status_sent_ms >= kStatusSendIntervalMs)) {
+      std::string payload = build_status_payload(video_path, ctx, paused, win_w, win_h);
+      if (!status_client.SendLine(payload)) {
+        status_connected = false;
+        std::cerr << "Warning: status stream disconnected from media-stream server\n";
+      }
+      last_status_sent_ms = now_ms;
+      send_status_now = false;
+    }
+
     SDL_Delay(frame_delay_ms);
   }
+
+  if (status_connected) {
+    status_client.SendLine(build_status_payload(video_path, ctx, paused, win_w, win_h) + " state=closed");
+  }
+  status_client.Disconnect();
 
   SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(renderer);

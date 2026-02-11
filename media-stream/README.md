@@ -1,14 +1,15 @@
 # TCP Chat Client-Server (C++)
 
-This folder contains a simple TCP chat system:
+This folder contains a TCP chat system with a reusable client API:
 - `server.cpp`: accepts multiple clients and broadcasts each received message to all other connected clients.
-- `client.cpp`: connects to server, sends typed messages, and prints broadcast messages.
+- `chat_client.h` + `chat_client.cpp`: reusable TCP client library for connecting/sending/receiving lines.
+- `client.cpp`: CLI chat client built on top of `ChatClient`.
 
 ## Build
 
 ```bash
 g++ -std=c++17 -pthread server.cpp -o server
-g++ -std=c++17 -pthread client.cpp -o client
+g++ -std=c++17 -pthread client.cpp chat_client.cpp -o client
 ```
 
 ## Run
