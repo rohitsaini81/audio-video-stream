@@ -37,3 +37,5 @@ cd ../video-player
   - `Right Arrow`: seek forward 10 seconds
   - `Space`: pause/resume
 - Player emits status lines with elapsed/remaining/total/progress/fps/pause/window info.
+- Sync fields now include: `state`, `sent_epoch_ms`, `sync_anchor_epoch_ms`, `playhead_ms`,
+  `duration_ms`, `remaining_ms`, `frame_index`, `decoded_frames`, and `pts`.

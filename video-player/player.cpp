@@ -9,6 +9,7 @@ extern "C" {
 }
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -36,6 +37,8 @@ struct PlayerContext {
   double fps = 30.0;
   double duration_seconds = 0.0;
   double current_seconds = 0.0;
+  int64_t current_pts = AV_NOPTS_VALUE;
+  uint64_t decoded_frames = 0;
   bool eof = false;
 };
 
@@ -190,10 +193,13 @@ bool decode_one_frame(PlayerContext& ctx) {
     sws_scale(ctx.sws_ctx, ctx.frame->data, ctx.frame->linesize, 0, ctx.codec_ctx->height,
               ctx.rgb_frame->data, ctx.rgb_frame->linesize);
 
+    ctx.current_pts = (ctx.frame->best_effort_timestamp != AV_NOPTS_VALUE) ? ctx.frame->best_effort_timestamp
+                                                                            : ctx.frame->pts;
     ctx.current_seconds = frame_seconds(ctx);
     if (ctx.duration_seconds > 0.0) {
       ctx.current_seconds = std::clamp(ctx.current_seconds, 0.0, ctx.duration_seconds);
     }
+    ++ctx.decoded_frames;
 
     return true;
   }
@@ -342,13 +348,24 @@ std::string format_seconds(double total_seconds) {
   return out.str();
 }
 
+int64_t now_epoch_ms() {
+  using namespace std::chrono;
+  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
+
 std::string build_status_payload(const std::string& video_path, const PlayerContext& ctx, bool paused,
-                                 int win_w, int win_h) {
+                                 int win_w, int win_h, const std::string& state_tag) {
   double progress = 0.0;
   if (ctx.duration_seconds > 0.0) {
     progress = std::clamp((ctx.current_seconds / ctx.duration_seconds) * 100.0, 0.0, 100.0);
   }
   double remaining = std::max(0.0, ctx.duration_seconds - ctx.current_seconds);
+  int64_t sent_ms = now_epoch_ms();
+  int64_t playhead_ms = static_cast<int64_t>(std::max(0.0, ctx.current_seconds) * 1000.0);
+  int64_t duration_ms = static_cast<int64_t>(std::max(0.0, ctx.duration_seconds) * 1000.0);
+  int64_t remaining_ms = std::max<int64_t>(0, duration_ms - playhead_ms);
+  int64_t sync_anchor_epoch_ms = sent_ms - playhead_ms;
+  int64_t frame_index = static_cast<int64_t>(ctx.current_seconds * std::max(1.0, ctx.fps));
 
   std::ostringstream out;
   out << "[VIDEO_STATUS]"
@@ -357,7 +374,11 @@ std::string build_status_payload(const std::string& video_path, const PlayerCont
       << " total=" << format_seconds(std::max(0.0, ctx.duration_seconds)) << " progress=" << std::fixed
       << std::setprecision(2) << progress << "%"
       << " fps=" << std::setprecision(2) << ctx.fps << " paused=" << (paused ? "yes" : "no")
-      << " eof=" << (ctx.eof ? "yes" : "no") << " window=" << win_w << "x" << win_h;
+      << " eof=" << (ctx.eof ? "yes" : "no") << " window=" << win_w << "x" << win_h
+      << " state=" << state_tag << " sent_epoch_ms=" << sent_ms << " sync_anchor_epoch_ms="
+      << sync_anchor_epoch_ms << " playhead_ms=" << playhead_ms << " duration_ms=" << duration_ms
+      << " remaining_ms=" << remaining_ms << " frame_index=" << frame_index
+      << " decoded_frames=" << ctx.decoded_frames << " pts=" << ctx.current_pts;
   return out.str();
 }
 }  // namespace
@@ -422,6 +443,7 @@ int main(int argc, char* argv[]) {
   bool paused = false;
   bool dragging_seek = false;
   bool send_status_now = true;
+  std::string status_state = "playing";
   Uint32 last_status_sent_ms = 0;
   Uint32 frame_delay_ms = static_cast<Uint32>(1000.0 / std::max(1.0, ctx.fps));
   ChatClient status_client;
@@ -444,14 +466,17 @@ int main(int argc, char* argv[]) {
       } else if (event.type == SDL_KEYDOWN) {
         if (event.key.keysym.sym == SDLK_SPACE) {
           paused = !paused;
+          status_state = paused ? "paused" : "playing";
           send_status_now = true;
         }
         if (event.key.keysym.sym == SDLK_LEFT) {
           seek_to(ctx, ctx.current_seconds - kSeekStepSeconds);
+          status_state = "seeking";
           send_status_now = true;
         }
         if (event.key.keysym.sym == SDLK_RIGHT) {
           seek_to(ctx, ctx.current_seconds + kSeekStepSeconds);
+          status_state = "seeking";
           send_status_now = true;
         }
       } else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
@@ -459,19 +484,23 @@ int main(int argc, char* argv[]) {
         int my = event.button.y;
         if (point_in_rect(mx, my, layout.back_btn)) {
           seek_to(ctx, ctx.current_seconds - kSeekStepSeconds);
+          status_state = "seeking";
           send_status_now = true;
         } else if (point_in_rect(mx, my, layout.fwd_btn)) {
           seek_to(ctx, ctx.current_seconds + kSeekStepSeconds);
+          status_state = "seeking";
           send_status_now = true;
         } else if (point_in_rect(mx, my, layout.seek_bar)) {
           dragging_seek = true;
           seek_from_position(ctx, layout.seek_bar, mx);
+          status_state = "seeking";
           send_status_now = true;
         }
       } else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
         dragging_seek = false;
       } else if (event.type == SDL_MOUSEMOTION && dragging_seek) {
         seek_from_position(ctx, layout.seek_bar, event.motion.x);
+        status_state = "seeking";
         send_status_now = true;
       }
     }
@@ -479,7 +508,13 @@ int main(int argc, char* argv[]) {
     if (!paused && !ctx.eof) {
       if (decode_one_frame(ctx)) {
         SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
+        if (status_state != "seeking") {
+          status_state = "playing";
+        }
       }
+    }
+    if (ctx.eof) {
+      status_state = "eof";
     }
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -492,20 +527,23 @@ int main(int argc, char* argv[]) {
     Uint32 now_ms = SDL_GetTicks();
     if (status_connected &&
         (send_status_now || now_ms - last_status_sent_ms >= kStatusSendIntervalMs)) {
-      std::string payload = build_status_payload(video_path, ctx, paused, win_w, win_h);
+      std::string payload = build_status_payload(video_path, ctx, paused, win_w, win_h, status_state);
       if (!status_client.SendLine(payload)) {
         status_connected = false;
         std::cerr << "Warning: status stream disconnected from media-stream server\n";
       }
       last_status_sent_ms = now_ms;
       send_status_now = false;
+      if (status_state == "seeking") {
+        status_state = paused ? "paused" : "playing";
+      }
     }
 
     SDL_Delay(frame_delay_ms);
   }
 
   if (status_connected) {
-    status_client.SendLine(build_status_payload(video_path, ctx, paused, win_w, win_h) + " state=closed");
+    status_client.SendLine(build_status_payload(video_path, ctx, paused, win_w, win_h, "closed"));
   }
   status_client.Disconnect();
 
