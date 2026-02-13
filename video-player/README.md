@@ -7,7 +7,11 @@ Pass a video path to the compiled binary and it will play the video with:
 - backward button (seek -10s)
 - forward button (seek +10s)
 - resizable window with aspect-ratio-preserving video scaling
-- realtime playback status streaming to `media-stream` server (`127.0.0.1:54000`)
+- realtime playback status streaming to `media-stream` server
+- cross-device sync by `file_name`:
+  - pause/resume is mirrored
+  - seek position is mirrored
+  - playback drift is corrected automatically
 
 ## Build
 
@@ -27,8 +31,20 @@ cd ../media-stream
 2. Start player:
 ```bash
 cd ../video-player
+./video_player /path/to/video.mp4 [sync_server_ip] [sync_server_port]
+```
+
+Examples:
+- Same machine:
+```bash
 ./video_player /path/to/video.mp4
 ```
+- Different device on same LAN (server running on `192.168.1.10`):
+```bash
+./video_player /path/to/video.mp4 192.168.1.10 54000
+```
+
+For multi-device sync, open the same video filename on all devices (for example `movie.mp4`).
 
 ## Notes
 

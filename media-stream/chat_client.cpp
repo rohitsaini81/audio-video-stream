@@ -83,9 +83,14 @@ void ChatClient::StopReceiver() {
 }
 
 void ChatClient::Disconnect() {
-  StopReceiver();
+  receiver_running_.store(false);
   if (sock_fd_ >= 0) {
     shutdown(sock_fd_, SHUT_RDWR);
+  }
+  if (receiver_thread_.joinable()) {
+    receiver_thread_.join();
+  }
+  if (sock_fd_ >= 0) {
     close(sock_fd_);
     sock_fd_ = -1;
   }

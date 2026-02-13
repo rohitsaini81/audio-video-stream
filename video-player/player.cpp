@@ -13,6 +13,8 @@ extern "C" {
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
+#include <optional>
 #include <sstream>
 #include <string>
 
@@ -23,6 +25,7 @@ constexpr int kButtonHeight = 42;
 constexpr int kSeekStepSeconds = 10;
 constexpr int kSeekToleranceFrames = 300;
 constexpr Uint32 kStatusSendIntervalMs = 1000;
+constexpr double kSyncDriftThresholdSeconds = 0.50;
 
 struct PlayerContext {
   AVFormatContext* format_ctx = nullptr;
@@ -49,6 +52,67 @@ struct UiLayout {
   SDL_Rect fwd_btn;
   SDL_Rect seek_bar;
 };
+
+struct SyncStateSnapshot {
+  std::string file_name;
+  std::string state;
+  bool paused = false;
+  int64_t sent_epoch_ms = 0;
+  int64_t playhead_ms = 0;
+};
+
+struct PendingRemoteSync {
+  SyncStateSnapshot snapshot;
+};
+
+std::string basename_of(const std::string& path) {
+  size_t pos = path.find_last_of("/\\");
+  if (pos == std::string::npos) {
+    return path;
+  }
+  return path.substr(pos + 1);
+}
+
+std::optional<std::string> get_kv_value(const std::string& line, const std::string& key) {
+  std::string token = key + "=";
+  size_t begin = line.find(token);
+  if (begin == std::string::npos) {
+    return std::nullopt;
+  }
+  begin += token.size();
+  size_t end = line.find_first_of(" \r\n", begin);
+  if (end == std::string::npos) {
+    end = line.size();
+  }
+  return line.substr(begin, end - begin);
+}
+
+std::optional<SyncStateSnapshot> parse_sync_line(const std::string& line) {
+  if (line.find("[VIDEO_STATUS]") == std::string::npos) {
+    return std::nullopt;
+  }
+
+  auto file_name = get_kv_value(line, "file_name");
+  auto state = get_kv_value(line, "state");
+  auto paused = get_kv_value(line, "paused");
+  auto sent_epoch_ms = get_kv_value(line, "sent_epoch_ms");
+  auto playhead_ms = get_kv_value(line, "playhead_ms");
+  if (!file_name || !state || !paused || !sent_epoch_ms || !playhead_ms) {
+    return std::nullopt;
+  }
+
+  SyncStateSnapshot snapshot;
+  snapshot.file_name = *file_name;
+  snapshot.state = *state;
+  snapshot.paused = (*paused == "yes");
+  try {
+    snapshot.sent_epoch_ms = std::stoll(*sent_epoch_ms);
+    snapshot.playhead_ms = std::stoll(*playhead_ms);
+  } catch (...) {
+    return std::nullopt;
+  }
+  return snapshot;
+}
 
 double frame_seconds(const PlayerContext& ctx) {
   int64_t ts = ctx.frame->best_effort_timestamp;
@@ -353,7 +417,7 @@ int64_t now_epoch_ms() {
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
-std::string build_status_payload(const std::string& video_path, const PlayerContext& ctx, bool paused,
+std::string build_status_payload(const std::string& video_file_name, const PlayerContext& ctx, bool paused,
                                  int win_w, int win_h, const std::string& state_tag) {
   double progress = 0.0;
   if (ctx.duration_seconds > 0.0) {
@@ -369,7 +433,7 @@ std::string build_status_payload(const std::string& video_path, const PlayerCont
 
   std::ostringstream out;
   out << "[VIDEO_STATUS]"
-      << " file=" << video_path << " elapsed=" << format_seconds(ctx.current_seconds)
+      << " file_name=" << video_file_name << " elapsed=" << format_seconds(ctx.current_seconds)
       << " remaining=" << format_seconds(remaining)
       << " total=" << format_seconds(std::max(0.0, ctx.duration_seconds)) << " progress=" << std::fixed
       << std::setprecision(2) << progress << "%"
@@ -385,11 +449,18 @@ std::string build_status_payload(const std::string& video_path, const PlayerCont
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <video_path>\n";
+    std::cerr << "Usage: " << argv[0] << " <video_path> [sync_server_ip] [sync_server_port]\n";
     return 1;
   }
 
   const std::string video_path = argv[1];
+  const std::string video_file_name = basename_of(video_path);
+  const std::string sync_server_ip = (argc > 2) ? argv[2] : "127.0.0.1";
+  int sync_server_port = 54000;
+  if (argc > 3) {
+    sync_server_port = std::stoi(argv[3]);
+  }
+
   PlayerContext ctx;
   if (!init_ffmpeg(ctx, video_path)) {
     free_ffmpeg(ctx);
@@ -446,10 +517,44 @@ int main(int argc, char* argv[]) {
   std::string status_state = "playing";
   Uint32 last_status_sent_ms = 0;
   Uint32 frame_delay_ms = static_cast<Uint32>(1000.0 / std::max(1.0, ctx.fps));
+  std::mutex pending_sync_mutex;
+  std::optional<PendingRemoteSync> pending_sync;
+  int64_t last_applied_remote_sent_epoch_ms = 0;
+  std::string receiver_buffer;
   ChatClient status_client;
-  bool status_connected = status_client.Connect("127.0.0.1", 54000);
+  bool status_connected = status_client.Connect(sync_server_ip, sync_server_port);
   if (!status_connected) {
-    std::cerr << "Warning: failed to connect status stream to 127.0.0.1:54000\n";
+    std::cerr << "Warning: failed to connect status stream to " << sync_server_ip << ":"
+              << sync_server_port << "\n";
+  } else {
+    status_client.StartReceiver([&](const std::string& chunk) {
+      receiver_buffer.append(chunk);
+      if (receiver_buffer.size() > 1024 * 1024) {
+        receiver_buffer.clear();
+      }
+
+      size_t line_end = 0;
+      while ((line_end = receiver_buffer.find('\n')) != std::string::npos) {
+        std::string line = receiver_buffer.substr(0, line_end);
+        receiver_buffer.erase(0, line_end + 1);
+
+        auto parsed = parse_sync_line(line);
+        if (!parsed) {
+          continue;
+        }
+        if (parsed->file_name != video_file_name) {
+          continue;
+        }
+        if (parsed->sent_epoch_ms <= 0) {
+          continue;
+        }
+
+        PendingRemoteSync next;
+        next.snapshot = *parsed;
+        std::lock_guard<std::mutex> lock(pending_sync_mutex);
+        pending_sync = next;
+      }
+    });
   }
 
   decode_one_frame(ctx);
@@ -505,6 +610,51 @@ int main(int argc, char* argv[]) {
       }
     }
 
+    {
+      std::optional<PendingRemoteSync> remote_update;
+      {
+        std::lock_guard<std::mutex> lock(pending_sync_mutex);
+        if (pending_sync.has_value()) {
+          remote_update = pending_sync;
+          pending_sync.reset();
+        }
+      }
+
+      if (remote_update.has_value()) {
+        const SyncStateSnapshot& snap = remote_update->snapshot;
+        if (snap.sent_epoch_ms > last_applied_remote_sent_epoch_ms) {
+          double target_seconds = std::max(0.0, static_cast<double>(snap.playhead_ms) / 1000.0);
+          if (!snap.paused) {
+            int64_t now_ms = now_epoch_ms();
+            int64_t drift_ms = std::max<int64_t>(0, now_ms - snap.sent_epoch_ms);
+            target_seconds += static_cast<double>(drift_ms) / 1000.0;
+          }
+          if (ctx.duration_seconds > 0.0) {
+            target_seconds = std::clamp(target_seconds, 0.0, ctx.duration_seconds);
+          }
+
+          bool should_seek = (snap.state == "seeking");
+          double drift = std::abs(ctx.current_seconds - target_seconds);
+          if (!should_seek && drift >= kSyncDriftThresholdSeconds) {
+            should_seek = true;
+          }
+
+          bool pause_changed = (paused != snap.paused);
+          if (should_seek && seek_to(ctx, target_seconds)) {
+            SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
+          }
+          if (pause_changed) {
+            paused = snap.paused;
+          }
+
+          if (should_seek || pause_changed) {
+            status_state = snap.paused ? "paused" : "playing";
+          }
+          last_applied_remote_sent_epoch_ms = snap.sent_epoch_ms;
+        }
+      }
+    }
+
     if (!paused && !ctx.eof) {
       if (decode_one_frame(ctx)) {
         SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
@@ -527,7 +677,8 @@ int main(int argc, char* argv[]) {
     Uint32 now_ms = SDL_GetTicks();
     if (status_connected &&
         (send_status_now || now_ms - last_status_sent_ms >= kStatusSendIntervalMs)) {
-      std::string payload = build_status_payload(video_path, ctx, paused, win_w, win_h, status_state);
+      std::string payload =
+          build_status_payload(video_file_name, ctx, paused, win_w, win_h, status_state);
       if (!status_client.SendLine(payload)) {
         status_connected = false;
         std::cerr << "Warning: status stream disconnected from media-stream server\n";
@@ -543,7 +694,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (status_connected) {
-    status_client.SendLine(build_status_payload(video_path, ctx, paused, win_w, win_h, "closed"));
+    status_client.SendLine(build_status_payload(video_file_name, ctx, paused, win_w, win_h, "closed"));
   }
   status_client.Disconnect();
 
