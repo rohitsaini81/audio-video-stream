@@ -25,6 +25,9 @@ constexpr int kButtonHeight = 42;
 constexpr int kSeekStepSeconds = 10;
 constexpr int kSeekToleranceFrames = 300;
 constexpr Uint32 kStatusSendIntervalMs = 1000;
+constexpr Uint32 kSeekActionIntervalMs = 120;
+constexpr Uint32 kRemoteSeekApplyIntervalMs = 120;
+constexpr double kSeekActionMinDeltaSeconds = 0.20;
 constexpr double kSyncDriftThresholdSeconds = 0.50;
 
 struct PlayerContext {
@@ -375,15 +378,6 @@ bool point_in_rect(int x, int y, const SDL_Rect& rect) {
   return x >= rect.x && x < rect.x + rect.w && y >= rect.y && y < rect.y + rect.h;
 }
 
-void seek_from_position(PlayerContext& ctx, const SDL_Rect& seek_bar, int mouse_x) {
-  if (ctx.duration_seconds <= 0.0) {
-    return;
-  }
-  double ratio = static_cast<double>(mouse_x - seek_bar.x) / static_cast<double>(std::max(1, seek_bar.w));
-  ratio = std::clamp(ratio, 0.0, 1.0);
-  seek_to(ctx, ratio * ctx.duration_seconds);
-}
-
 void compute_initial_window_size(int src_w, int src_h, int* out_w, int* out_h) {
   constexpr int kMaxInitialW = 960;
   constexpr int kMaxInitialH = 540;
@@ -516,6 +510,8 @@ int main(int argc, char* argv[]) {
   bool send_status_now = true;
   std::string status_state = "playing";
   Uint32 last_status_sent_ms = 0;
+  Uint32 last_seek_action_ms = 0;
+  Uint32 last_remote_seek_applied_ms = 0;
   Uint32 frame_delay_ms = static_cast<Uint32>(1000.0 / std::max(1.0, ctx.fps));
   std::mutex pending_sync_mutex;
   std::optional<PendingRemoteSync> pending_sync;
@@ -560,6 +556,26 @@ int main(int argc, char* argv[]) {
   decode_one_frame(ctx);
   SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
 
+  auto perform_seek_action = [&](double target_seconds, bool force) {
+    Uint32 now_ms = SDL_GetTicks();
+    double delta = std::abs(ctx.current_seconds - target_seconds);
+    if (!force) {
+      if (now_ms - last_seek_action_ms < kSeekActionIntervalMs) {
+        return false;
+      }
+      if (delta < kSeekActionMinDeltaSeconds) {
+        return false;
+      }
+    }
+    if (seek_to(ctx, target_seconds)) {
+      last_seek_action_ms = now_ms;
+      status_state = "seeking";
+      send_status_now = true;
+      return true;
+    }
+    return false;
+  };
+
   while (running) {
     SDL_GetWindowSize(window, &win_w, &win_h);
     UiLayout layout = compute_layout(win_w, win_h, src_w, src_h);
@@ -575,38 +591,43 @@ int main(int argc, char* argv[]) {
           send_status_now = true;
         }
         if (event.key.keysym.sym == SDLK_LEFT) {
-          seek_to(ctx, ctx.current_seconds - kSeekStepSeconds);
-          status_state = "seeking";
-          send_status_now = true;
+          perform_seek_action(ctx.current_seconds - kSeekStepSeconds, true);
         }
         if (event.key.keysym.sym == SDLK_RIGHT) {
-          seek_to(ctx, ctx.current_seconds + kSeekStepSeconds);
-          status_state = "seeking";
-          send_status_now = true;
+          perform_seek_action(ctx.current_seconds + kSeekStepSeconds, true);
         }
       } else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
         int mx = event.button.x;
         int my = event.button.y;
         if (point_in_rect(mx, my, layout.back_btn)) {
-          seek_to(ctx, ctx.current_seconds - kSeekStepSeconds);
-          status_state = "seeking";
-          send_status_now = true;
+          perform_seek_action(ctx.current_seconds - kSeekStepSeconds, true);
         } else if (point_in_rect(mx, my, layout.fwd_btn)) {
-          seek_to(ctx, ctx.current_seconds + kSeekStepSeconds);
-          status_state = "seeking";
-          send_status_now = true;
+          perform_seek_action(ctx.current_seconds + kSeekStepSeconds, true);
         } else if (point_in_rect(mx, my, layout.seek_bar)) {
           dragging_seek = true;
-          seek_from_position(ctx, layout.seek_bar, mx);
-          status_state = "seeking";
-          send_status_now = true;
+          if (ctx.duration_seconds > 0.0) {
+            double ratio = static_cast<double>(mx - layout.seek_bar.x) /
+                           static_cast<double>(std::max(1, layout.seek_bar.w));
+            ratio = std::clamp(ratio, 0.0, 1.0);
+            perform_seek_action(ratio * ctx.duration_seconds, true);
+          }
         }
       } else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+        if (dragging_seek && point_in_rect(event.button.x, event.button.y, layout.seek_bar) &&
+            ctx.duration_seconds > 0.0) {
+          double ratio = static_cast<double>(event.button.x - layout.seek_bar.x) /
+                         static_cast<double>(std::max(1, layout.seek_bar.w));
+          ratio = std::clamp(ratio, 0.0, 1.0);
+          perform_seek_action(ratio * ctx.duration_seconds, true);
+        }
         dragging_seek = false;
       } else if (event.type == SDL_MOUSEMOTION && dragging_seek) {
-        seek_from_position(ctx, layout.seek_bar, event.motion.x);
-        status_state = "seeking";
-        send_status_now = true;
+        if (ctx.duration_seconds > 0.0) {
+          double ratio = static_cast<double>(event.motion.x - layout.seek_bar.x) /
+                         static_cast<double>(std::max(1, layout.seek_bar.w));
+          ratio = std::clamp(ratio, 0.0, 1.0);
+          perform_seek_action(ratio * ctx.duration_seconds, false);
+        }
       }
     }
 
@@ -635,12 +656,20 @@ int main(int argc, char* argv[]) {
 
           bool should_seek = (snap.state == "seeking");
           double drift = std::abs(ctx.current_seconds - target_seconds);
+          Uint32 now_ms = SDL_GetTicks();
+          if (should_seek && drift < kSeekActionMinDeltaSeconds) {
+            should_seek = false;
+          }
+          if (should_seek && now_ms - last_remote_seek_applied_ms < kRemoteSeekApplyIntervalMs) {
+            should_seek = false;
+          }
           if (!should_seek && drift >= kSyncDriftThresholdSeconds) {
             should_seek = true;
           }
 
           bool pause_changed = (paused != snap.paused);
           if (should_seek && seek_to(ctx, target_seconds)) {
+            last_remote_seek_applied_ms = now_ms;
             SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
           }
           if (pause_changed) {
