@@ -507,6 +507,7 @@ int main(int argc, char* argv[]) {
   bool running = true;
   bool paused = false;
   bool dragging_seek = false;
+  double dragging_seek_ratio = 0.0;
   bool send_status_now = true;
   std::string status_state = "playing";
   Uint32 last_status_sent_ms = 0;
@@ -608,16 +609,17 @@ int main(int argc, char* argv[]) {
           if (ctx.duration_seconds > 0.0) {
             double ratio = static_cast<double>(mx - layout.seek_bar.x) /
                            static_cast<double>(std::max(1, layout.seek_bar.w));
-            ratio = std::clamp(ratio, 0.0, 1.0);
-            perform_seek_action(ratio * ctx.duration_seconds, true);
+            dragging_seek_ratio = std::clamp(ratio, 0.0, 1.0);
           }
         }
       } else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
-        if (dragging_seek && point_in_rect(event.button.x, event.button.y, layout.seek_bar) &&
-            ctx.duration_seconds > 0.0) {
-          double ratio = static_cast<double>(event.button.x - layout.seek_bar.x) /
-                         static_cast<double>(std::max(1, layout.seek_bar.w));
-          ratio = std::clamp(ratio, 0.0, 1.0);
+        if (dragging_seek && ctx.duration_seconds > 0.0) {
+          double ratio = dragging_seek_ratio;
+          if (point_in_rect(event.button.x, event.button.y, layout.seek_bar)) {
+            ratio = static_cast<double>(event.button.x - layout.seek_bar.x) /
+                    static_cast<double>(std::max(1, layout.seek_bar.w));
+            ratio = std::clamp(ratio, 0.0, 1.0);
+          }
           perform_seek_action(ratio * ctx.duration_seconds, true);
         }
         dragging_seek = false;
@@ -625,8 +627,7 @@ int main(int argc, char* argv[]) {
         if (ctx.duration_seconds > 0.0) {
           double ratio = static_cast<double>(event.motion.x - layout.seek_bar.x) /
                          static_cast<double>(std::max(1, layout.seek_bar.w));
-          ratio = std::clamp(ratio, 0.0, 1.0);
-          perform_seek_action(ratio * ctx.duration_seconds, false);
+          dragging_seek_ratio = std::clamp(ratio, 0.0, 1.0);
         }
       }
     }
@@ -700,6 +701,9 @@ int main(int argc, char* argv[]) {
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, nullptr, &layout.video_dst);
     double progress = ctx.duration_seconds > 0.0 ? (ctx.current_seconds / ctx.duration_seconds) : 0.0;
+    if (dragging_seek && ctx.duration_seconds > 0.0) {
+      progress = dragging_seek_ratio;
+    }
     render_ui(renderer, layout, progress);
     SDL_RenderPresent(renderer);
 
