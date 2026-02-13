@@ -46,6 +46,7 @@ struct PlayerContext {
   int64_t current_pts = AV_NOPTS_VALUE;
   uint64_t decoded_frames = 0;
   bool eof = false;
+  bool use_yuv420_texture = false;
 };
 
 struct UiLayout {
@@ -183,10 +184,20 @@ bool init_ffmpeg(PlayerContext& ctx, const std::string& path) {
   }
 
   ctx.frame = av_frame_alloc();
-  ctx.rgb_frame = av_frame_alloc();
   ctx.packet = av_packet_alloc();
-  if (!ctx.frame || !ctx.rgb_frame || !ctx.packet) {
+  if (!ctx.frame || !ctx.packet) {
     std::cerr << "Failed to allocate frame/packet.\n";
+    return false;
+  }
+
+  ctx.use_yuv420_texture = (ctx.codec_ctx->pix_fmt == AV_PIX_FMT_YUV420P);
+  if (ctx.use_yuv420_texture) {
+    return true;
+  }
+
+  ctx.rgb_frame = av_frame_alloc();
+  if (!ctx.rgb_frame) {
+    std::cerr << "Failed to allocate RGB frame.\n";
     return false;
   }
 
@@ -257,8 +268,10 @@ bool decode_one_frame(PlayerContext& ctx) {
       return false;
     }
 
-    sws_scale(ctx.sws_ctx, ctx.frame->data, ctx.frame->linesize, 0, ctx.codec_ctx->height,
-              ctx.rgb_frame->data, ctx.rgb_frame->linesize);
+    if (!ctx.use_yuv420_texture) {
+      sws_scale(ctx.sws_ctx, ctx.frame->data, ctx.frame->linesize, 0, ctx.codec_ctx->height,
+                ctx.rgb_frame->data, ctx.rgb_frame->linesize);
+    }
 
     ctx.current_pts = (ctx.frame->best_effort_timestamp != AV_NOPTS_VALUE) ? ctx.frame->best_effort_timestamp
                                                                             : ctx.frame->pts;
@@ -270,6 +283,15 @@ bool decode_one_frame(PlayerContext& ctx) {
 
     return true;
   }
+}
+
+bool update_texture_from_frame(const PlayerContext& ctx, SDL_Texture* texture) {
+  if (ctx.use_yuv420_texture) {
+    return SDL_UpdateYUVTexture(texture, nullptr, ctx.frame->data[0], ctx.frame->linesize[0],
+                                ctx.frame->data[1], ctx.frame->linesize[1], ctx.frame->data[2],
+                                ctx.frame->linesize[2]) == 0;
+  }
+  return SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]) == 0;
 }
 
 bool seek_to(PlayerContext& ctx, double target_seconds) {
@@ -493,8 +515,9 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  Uint32 texture_format = ctx.use_yuv420_texture ? SDL_PIXELFORMAT_IYUV : SDL_PIXELFORMAT_RGB24;
   SDL_Texture* texture =
-      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, src_w, src_h);
+      SDL_CreateTexture(renderer, texture_format, SDL_TEXTUREACCESS_STREAMING, src_w, src_h);
   if (!texture) {
     std::cerr << "Failed to create texture: " << SDL_GetError() << "\n";
     SDL_DestroyRenderer(renderer);
@@ -555,7 +578,9 @@ int main(int argc, char* argv[]) {
   }
 
   decode_one_frame(ctx);
-  SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
+  if (!update_texture_from_frame(ctx, texture)) {
+    std::cerr << "Failed to upload initial frame to texture: " << SDL_GetError() << "\n";
+  }
 
   auto perform_seek_action = [&](double target_seconds, bool force) {
     Uint32 now_ms = SDL_GetTicks();
@@ -671,7 +696,9 @@ int main(int argc, char* argv[]) {
           bool pause_changed = (paused != snap.paused);
           if (should_seek && seek_to(ctx, target_seconds)) {
             last_remote_seek_applied_ms = now_ms;
-            SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
+            if (!update_texture_from_frame(ctx, texture)) {
+              std::cerr << "Failed to upload synced frame to texture: " << SDL_GetError() << "\n";
+            }
           }
           if (pause_changed) {
             paused = snap.paused;
@@ -687,7 +714,9 @@ int main(int argc, char* argv[]) {
 
     if (!paused && !ctx.eof) {
       if (decode_one_frame(ctx)) {
-        SDL_UpdateTexture(texture, nullptr, ctx.rgb_frame->data[0], ctx.rgb_frame->linesize[0]);
+        if (!update_texture_from_frame(ctx, texture)) {
+          std::cerr << "Failed to upload frame to texture: " << SDL_GetError() << "\n";
+        }
         if (status_state != "seeking") {
           status_state = "playing";
         }
