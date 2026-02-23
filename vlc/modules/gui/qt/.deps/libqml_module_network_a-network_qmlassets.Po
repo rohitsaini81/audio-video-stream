@@ -1,3 +1,0 @@
-libqml_module_network_a-network_qmlassets.o: network_qmlassets.cpp \
- /usr/include/stdc-predef.h
-/usr/include/stdc-predef.h:

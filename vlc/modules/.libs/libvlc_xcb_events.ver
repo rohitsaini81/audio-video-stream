@@ -1,5 +1,0 @@
-{ global:
-vlc_xcb_Manage;
-vlc_xcb_error_Check;
-vlc_xcb_parent_Create;
-local: *; };

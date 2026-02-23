@@ -1,9 +1,0 @@
-<RCC>
-  <qresource prefix="/qt/qml/VLC/MainInterface">
-    <file alias="BannerSources.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/maininterface/qml/BannerSources.qml</file>
-    <file alias="MainInterface.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/maininterface/qml/MainInterface.qml</file>
-    <file alias="MainViewLoader.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/maininterface/qml/MainViewLoader.qml</file>
-    <file alias="MainDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/maininterface/qml/MainDisplay.qml</file>
-    <file alias="NoMedialibHome.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/maininterface/qml/NoMedialibHome.qml</file>
-  </qresource>
-</RCC>

@@ -1,5 +1,0 @@
-vlc_pa_connect
-vlc_pa_disconnect
-vlc_pa_error
-vlc_pa_get_latency
-vlc_pa_rttime_free

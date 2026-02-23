@@ -1,3 +1,0 @@
-libqml_module_widgets_a-widgets_qmlassets.o: widgets_qmlassets.cpp \
- /usr/include/stdc-predef.h
-/usr/include/stdc-predef.h:

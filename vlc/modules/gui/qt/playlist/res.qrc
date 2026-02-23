@@ -1,8 +1,0 @@
-<RCC>
-  <qresource prefix="/qt/qml/VLC/Playlist">
-    <file alias="PlaylistDelegate.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/playlist/qml/PlaylistDelegate.qml</file>
-    <file alias="PlaylistPane.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/playlist/qml/PlaylistPane.qml</file>
-    <file alias="PlaylistToolbar.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/playlist/qml/PlaylistToolbar.qml</file>
-    <file alias="PlaylistDetachedWindow.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/playlist/qml/PlaylistDetachedWindow.qml</file>
-  </qresource>
-</RCC>

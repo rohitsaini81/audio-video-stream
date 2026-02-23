@@ -1,8 +1,0 @@
-<RCC>
-  <qresource prefix="/qt/qml/VLC/Menus">
-    <file alias="GlobalShortcuts.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/menus/qml/GlobalShortcuts.qml</file>
-    <file alias="GlobalShortcutsMedialib.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/menus/qml/GlobalShortcutsMedialib.qml</file>
-    <file alias="Menubar.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/menus/qml/Menubar.qml</file>
-    <file alias="ShortcutExt.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/menus/qml/ShortcutExt.qml</file>
-  </qresource>
-</RCC>

@@ -1,3 +1,0 @@
-libqml_module_player_a-player_qmlassets.o: player_qmlassets.cpp \
- /usr/include/stdc-predef.h
-/usr/include/stdc-predef.h:
