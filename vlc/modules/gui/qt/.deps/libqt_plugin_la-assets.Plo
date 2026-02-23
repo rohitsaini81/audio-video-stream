@@ -1,0 +1,2 @@
+libqt_plugin_la-assets.lo: assets.cpp /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

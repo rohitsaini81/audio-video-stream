@@ -1,0 +1,9 @@
+gui/skins2/src/libskins2_plugin_la-ft2_err.lo: gui/skins2/src/ft2_err.c \
+ /usr/include/stdc-predef.h /usr/include/freetype2/ft2build.h \
+ /usr/include/freetype2/freetype/config/ftheader.h \
+ gui/skins2/src/ft2_err.h /usr/include/freetype2/freetype/fterrdef.h
+/usr/include/stdc-predef.h:
+/usr/include/freetype2/ft2build.h:
+/usr/include/freetype2/freetype/config/ftheader.h:
+gui/skins2/src/ft2_err.h:
+/usr/include/freetype2/freetype/fterrdef.h:

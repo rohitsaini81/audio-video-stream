@@ -1,0 +1,7 @@
+{ global:
+vlc_entry;
+vlc_entry_api_version;
+vlc_entry_cfg_str_enum;
+vlc_entry_copyright;
+vlc_entry_license;
+local: *; };

@@ -1,0 +1,3 @@
+libqml_module_playlist_a-playlist_qmlassets.o: playlist_qmlassets.cpp \
+ /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

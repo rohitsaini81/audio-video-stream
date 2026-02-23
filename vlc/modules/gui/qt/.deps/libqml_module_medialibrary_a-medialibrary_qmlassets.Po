@@ -1,0 +1,3 @@
+libqml_module_medialibrary_a-medialibrary_qmlassets.o: \
+ medialibrary_qmlassets.cpp /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

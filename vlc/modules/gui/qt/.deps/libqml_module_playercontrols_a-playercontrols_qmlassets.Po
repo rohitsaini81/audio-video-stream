@@ -1,0 +1,3 @@
+libqml_module_playercontrols_a-playercontrols_qmlassets.o: \
+ playercontrols_qmlassets.cpp /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

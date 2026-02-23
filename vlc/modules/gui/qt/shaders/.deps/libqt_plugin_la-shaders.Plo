@@ -1,0 +1,3 @@
+shaders/libqt_plugin_la-shaders.lo: shaders/shaders.cpp \
+ /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

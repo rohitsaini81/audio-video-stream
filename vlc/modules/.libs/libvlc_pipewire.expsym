@@ -1,0 +1,11 @@
+vlc_pw_connect
+vlc_pw_disconnect
+vlc_pw_lock
+vlc_pw_log
+vlc_pw_perror
+vlc_pw_registry_listen
+vlc_pw_roundtrip_unlocked
+vlc_pw_signal
+vlc_pw_stream_new
+vlc_pw_unlock
+vlc_pw_wait

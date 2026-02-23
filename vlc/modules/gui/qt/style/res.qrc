@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="/qt/qml/VLC/Style">
+    <file alias="AcrylicController.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/style/AcrylicController.qml</file>
+    <file alias="VLCIcons.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/style/VLCIcons.qml</file>
+    <file alias="VLCStyle.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/style/VLCStyle.qml</file>
+  </qresource>
+</RCC>

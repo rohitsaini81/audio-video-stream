@@ -1,0 +1,3 @@
+libqml_module_maininterface_a-maininterface_qmlassets.o: \
+ maininterface_qmlassets.cpp /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

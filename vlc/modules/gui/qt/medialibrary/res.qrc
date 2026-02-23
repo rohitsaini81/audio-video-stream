@@ -1,0 +1,38 @@
+<RCC>
+  <qresource prefix="/qt/qml/VLC/MediaLibrary">
+    <file alias="ArtistTopBanner.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/ArtistTopBanner.qml</file>
+    <file alias="AudioGridItem.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/AudioGridItem.qml</file>
+    <file alias="HomeDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/HomeDisplay.qml</file>
+    <file alias="HomePage.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/HomePage.qml</file>
+    <file alias="MediaView.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MediaView.qml</file>
+    <file alias="VideoGroupDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoGroupDisplay.qml</file>
+    <file alias="MusicAlbums.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicAlbums.qml</file>
+    <file alias="MusicAlbumsDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicAlbumsDisplay.qml</file>
+    <file alias="MusicAlbumsGridExpandDelegate.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicAlbumsGridExpandDelegate.qml</file>
+    <file alias="MusicArtist.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicArtist.qml</file>
+    <file alias="MusicArtistDelegate.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicArtistDelegate.qml</file>
+    <file alias="MusicArtistsAlbums.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicArtistsAlbums.qml</file>
+    <file alias="MusicAllArtists.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicAllArtists.qml</file>
+    <file alias="MusicArtistsDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicArtistsDisplay.qml</file>
+    <file alias="MusicDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicDisplay.qml</file>
+    <file alias="MusicGenres.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicGenres.qml</file>
+    <file alias="MusicGenresDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicGenresDisplay.qml</file>
+    <file alias="MusicPlaylistsDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicPlaylistsDisplay.qml</file>
+    <file alias="MusicTrackListDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicTrackListDisplay.qml</file>
+    <file alias="MusicTracksDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicTracksDisplay.qml</file>
+    <file alias="UrlListDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/UrlListDisplay.qml</file>
+    <file alias="VideoDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoDisplay.qml</file>
+    <file alias="VideoAll.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoAll.qml</file>
+    <file alias="VideoAllDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoAllDisplay.qml</file>
+    <file alias="VideoAllSubDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoAllSubDisplay.qml</file>
+    <file alias="PlaylistMediaList.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/PlaylistMediaList.qml</file>
+    <file alias="PlaylistMedia.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/PlaylistMedia.qml</file>
+    <file alias="PlaylistMediaDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/PlaylistMediaDisplay.qml</file>
+    <file alias="VideoPlaylistsDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoPlaylistsDisplay.qml</file>
+    <file alias="VideoGridItem.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoGridItem.qml</file>
+    <file alias="VideoInfoExpandPanel.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoInfoExpandPanel.qml</file>
+    <file alias="VideoListDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoListDisplay.qml</file>
+    <file alias="VideoGridDisplay.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/VideoGridDisplay.qml</file>
+    <file alias="MusicAlbumSectionDelegate.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/medialibrary/qml/MusicAlbumSectionDelegate.qml</file>
+  </qresource>
+</RCC>

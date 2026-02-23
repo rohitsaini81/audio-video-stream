@@ -1,0 +1,3 @@
+libqml_module_menus_a-menus_qmlassets.o: menus_qmlassets.cpp \
+ /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

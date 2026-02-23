@@ -1,0 +1,3 @@
+../src/libvlc_la-revision.lo: ../src/revision.c \
+ /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

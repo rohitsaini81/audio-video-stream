@@ -1,0 +1,3 @@
+libqml_module_dialogs_a-dialogs_qmlassets.o: dialogs_qmlassets.cpp \
+ /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

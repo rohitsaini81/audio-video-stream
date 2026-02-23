@@ -1,0 +1,3 @@
+libqml_module_style_a-style_qmlassets.o: style_qmlassets.cpp \
+ /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:
