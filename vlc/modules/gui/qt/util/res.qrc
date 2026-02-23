@@ -1,0 +1,15 @@
+<RCC>
+  <qresource prefix="/qt/qml/VLC/Util">
+    <file alias="ModelSortSettingHandler.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/ModelSortSettingHandler.qml</file>
+    <file alias="DefaultFlickableScrollHandler.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/DefaultFlickableScrollHandler.qml</file>
+    <file alias="ViewDragAutoScrollHandler.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/ViewDragAutoScrollHandler.qml</file>
+    <file alias="FSM.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/FSM.qml</file>
+    <file alias="FSMState.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/FSMState.qml</file>
+    <file alias="NativeMenu.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/NativeMenu.qml</file>
+    <file alias="MLContextMenu.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/MLContextMenu.qml</file>
+    <file alias="FadeControllerStateGroup.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/FadeControllerStateGroup.qml</file>
+    <file alias="GridSizeHelper.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/GridSizeHelper.qml</file>
+    <file alias="DelayedBehavior.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/DelayedBehavior.qml</file>
+    <file alias="Helpers.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/util/qml/Helpers.qml</file>
+  </qresource>
+</RCC>

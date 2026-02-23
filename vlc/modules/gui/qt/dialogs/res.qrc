@@ -1,0 +1,15 @@
+<RCC>
+  <qresource prefix="/qt/qml/VLC/Dialogs">
+    <file alias="CustomDialog.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/dialogs/qml/CustomDialog.qml</file>
+    <file alias="Dialogs.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/dialogs/qml/Dialogs.qml</file>
+    <file alias="ModalDialog.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/dialogs/qml/ModalDialog.qml</file>
+    <file alias="WindowDialog.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/dialogs/qml/WindowDialog.qml</file>
+    <file alias="EditorDNDDelegate.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/toolbar/qml/EditorDNDDelegate.qml</file>
+    <file alias="EditorDNDView.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/toolbar/qml/EditorDNDView.qml</file>
+    <file alias="EditorDummyButton.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/toolbar/qml/EditorDummyButton.qml</file>
+    <file alias="EditorTabButton.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/toolbar/qml/EditorTabButton.qml</file>
+    <file alias="ToolbarEditor.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/toolbar/qml/ToolbarEditor.qml</file>
+    <file alias="ToolbarEditorDialog.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/toolbar/qml/ToolbarEditorDialog.qml</file>
+    <file alias="ToolbarEditorButtonList.qml">/home/rohit/work/audio-video-stream/vlc/modules/gui/qt/dialogs/toolbar/qml/ToolbarEditorButtonList.qml</file>
+  </qresource>
+</RCC>
